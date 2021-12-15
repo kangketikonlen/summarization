@@ -7,7 +7,15 @@ from utils.summarization import sum_v1, sum_v2, sum_v3
 
 app = FastAPI()
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
