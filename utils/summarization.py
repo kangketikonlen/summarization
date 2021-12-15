@@ -1,32 +1,43 @@
-import requests
+import requests, torch
 from bs4 import BeautifulSoup
 from transformers import pipeline, PegasusForConditionalGeneration, PegasusTokenizer
 
 
 def sum_v1(artikel):
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
-    summary = summarizer(artikel, max_length=100, min_length=20, do_sample=False)
-    return summary[0]["summary_text"]
+    torch.set_num_threads(1)
+    torch.set_grad_enabled(False)
+    with torch.no_grad():
+        summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+        summary = summarizer(artikel, max_length=100, min_length=20, do_sample=False)
+        return summary[0]["summary_text"]
 
 
 def sum_v2(url):
-    summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, "html.parser")
-    results = soup.find_all(["h1", "p"])
-    text = [result.text for result in results]
-    artikel = " ".join(text)
-    chunks = chunks_text(artikel)
-    res = summarizer(chunks, max_length=100, min_length=20, do_sample=False)
+    torch.set_num_threads(1)
+    torch.set_grad_enabled(False)
+    with torch.no_grad():
+        summarizer = pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
+        r = requests.get(url)
+        soup = BeautifulSoup(r.text, "html.parser")
+        results = soup.find_all(["h1", "p"])
+        text = [result.text for result in results]
+        artikel = " ".join(text)
+        chunks = chunks_text(artikel)
+        res = summarizer(chunks, max_length=100, min_length=20, do_sample=False)
     return " ".join([summ["summary_text"] for summ in res])
 
 
 def sum_v3(text):
-    tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-xsum")
-    model = PegasusForConditionalGeneration.from_pretrained("google/pegasus-xsum")
-    tokens = tokenizer(text, truncation=True, padding="longest", return_tensors="pt")
-    summary = model.generate(**tokens)
-    return tokenizer.decode(summary[0])
+    torch.set_num_threads(1)
+    torch.set_grad_enabled(False)
+    with torch.no_grad():
+        tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-xsum")
+        model = PegasusForConditionalGeneration.from_pretrained("google/pegasus-xsum")
+        tokens = tokenizer(
+            text, truncation=True, padding="longest", return_tensors="pt"
+        )
+        summary = model.generate(**tokens)
+        return tokenizer.decode(summary[0])
 
 
 def chunks_text(artikel):
