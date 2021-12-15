@@ -1,11 +1,13 @@
-from typing import Optional
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from models.artikel import Artikel, ArtkelV2
 
 from utils.summarization import sum_v1, sum_v2, sum_v3
 
 app = FastAPI()
+
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 
 @app.get("/")
